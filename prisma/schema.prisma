@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum Diet {
+  VEG
+  NON_VEG
+}
+
+enum BillStatus {
+  OPEN
+  CLOSED
+  VOID
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+}
+
+enum SessionKind {
+  STAFF
+  CUSTOMER
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          Role
+  disabledAt    DateTime?
+  totpSecretEnc String?
+  totpEnabledAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions    Session[]
+  auditLogs   AuditLog[] @relation("AuditActor")
+  openedBills Bill[]     @relation("BillOpenedBy")
+  closedBills Bill[]     @relation("BillClosedBy")
+  voidedBills Bill[]     @relation("BillVoidedBy")
+
+  @@index([role])
+}
+
+model Session {
+  id         String       @id @default(uuid()) @db.Uuid
+  tokenHash  String       @unique
+  kind       SessionKind
+  userId     String?      @db.Uuid
+  user       User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerId String?      @db.Uuid
+  customer   Customer?    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tableId    String?      @db.Uuid
+  table      DiningTable? @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  lastSeenAt DateTime     @default(now())
+  createdAt  DateTime     @default(now())
+  ipHash     String?
+  userAgent  String?
+
+  @@index([userId])
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+model Customer {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  phoneE164      String   @unique
+  consentAt      DateTime
+  consentVersion String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sessions Session[]
+  bills    Bill[]
+}
+
+model OtpRequest {
+  id         String    @id @default(uuid()) @db.Uuid
+  phoneHash  String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  ipHash     String
+  createdAt  DateTime  @default(now())
+
+  @@index([phoneHash, createdAt])
+  @@index([ipHash, createdAt])
+}
+
+/// Restaurant table. Named DiningTable because TABLE is reserved in SQL.
+model DiningTable {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  label     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions Session[]
+  bills    Bill[]
+
+  @@map("dining_tables")
+}
+
+model Category {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @unique
+  sortOrder Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     MenuItem[]
+}
+
+model MenuItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  categoryId  String   @db.Uuid
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name        String
+  description String?
+  /// Guest-facing price in paise. GST is already included.
+  pricePaise  Int
+  /// GST included in pricePaise, in basis points. 500 = 5.00%.
+  gstBps      Int
+  diet        Diet
+  available   Boolean  @default(true)
+  photoUrl    String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  billItems   BillItem[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId, sortOrder])
+}
+
+model RestaurantSettings {
+  id                 Int     @id @default(1)
+  name               String
+  gstin              String
+  address            String
+  phone              String
+  allowStaffDiscount Boolean @default(false)
+  maxDiscountBps     Int     @default(0)
+}
+
+model BillCounter {
+  id         Int @id @default(1)
+  lastNumber Int @default(0)
+
+  @@map("bill_counter")
+}
+
+model Bill {
+  id            String      @id @default(uuid()) @db.Uuid
+  number        Int         @unique
+  status        BillStatus  @default(OPEN)
+  tableId       String      @db.Uuid
+  table         DiningTable @relation(fields: [tableId], references: [id])
+  customerId    String?     @db.Uuid
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+  openedById    String      @db.Uuid
+  openedBy      User        @relation("BillOpenedBy", fields: [openedById], references: [id])
+  closedById    String?     @db.Uuid
+  closedBy      User?       @relation("BillClosedBy", fields: [closedById], references: [id])
+  subtotalPaise Int         @default(0)
+  discountPaise Int         @default(0)
+  cgstPaise     Int         @default(0)
+  sgstPaise     Int         @default(0)
+  totalPaise    Int         @default(0)
+  openedAt      DateTime    @default(now())
+  closedAt      DateTime?
+  voidedAt      DateTime?
+  voidReason    String?
+  voidedById    String?     @db.Uuid
+  voidedBy      User?       @relation("BillVoidedBy", fields: [voidedById], references: [id])
+
+  items   BillItem[]
+  payment Payment?
+
+  @@index([status, closedAt])
+  @@index([tableId, status])
+}
+
+model BillItem {
+  id             String    @id @default(uuid()) @db.Uuid
+  billId         String    @db.Uuid
+  bill           Bill      @relation(fields: [billId], references: [id], onDelete: Restrict)
+  menuItemId     String?   @db.Uuid
+  menuItem       MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  nameSnapshot   String
+  dietSnapshot   Diet
+  unitPricePaise Int
+  gstBpsSnapshot Int
+  quantity       Int
+  lineTotalPaise Int
+
+  @@index([billId])
+}
+
+model Payment {
+  id          String      @id @default(uuid()) @db.Uuid
+  billId      String      @unique @db.Uuid
+  bill        Bill        @relation(fields: [billId], references: [id])
+  mode        PaymentMode
+  amountPaise Int
+  createdAt   DateTime    @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipHash     String?
+  createdAt  DateTime @default(now())
+
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
+}
