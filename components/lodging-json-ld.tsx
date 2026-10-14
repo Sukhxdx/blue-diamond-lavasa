@@ -1,4 +1,5 @@
 import { brand } from "@/lib/brand";
+import { enterprise } from "@/lib/enterprise";
 import { hostContact } from "@/lib/host-contact";
 import { publicEnv } from "@/lib/public-env";
 
@@ -7,23 +8,27 @@ export function LodgingJsonLd() {
     "@context": "https://schema.org",
     "@type": ["LodgingBusiness", "Restaurant"],
     name: brand.hotelName,
-    alternateName: brand.villaName,
+    legalName: enterprise.name,
+    alternateName: [brand.villaName, enterprise.name],
     description: `Villas and hotels in Lavasa. ${brand.hotelName} in ${brand.location}. The ${brand.villaName} villa is booked as a whole home. Hotel rooms are booked individually. The restaurant serves ${brand.cuisine} cuisine.`,
     url: publicEnv.siteUrl,
     servesCuisine: brand.cuisine,
     address: {
       "@type": "PostalAddress",
-      addressLocality: "Lavasa",
-      addressRegion: "Maharashtra",
+      streetAddress: enterprise.streetAddress,
+      addressLocality: enterprise.locality,
+      postalCode: enterprise.postalCode,
+      addressRegion: enterprise.region,
       addressCountry: "IN",
     },
+    hasMap: hostContact.mapsUrl,
     containsPlace: {
       "@type": "Accommodation",
       name: brand.villaName,
       description: "Villa booked as a whole unit.",
     },
     telephone: publicEnv.phoneE164 ? `+${publicEnv.phoneE164}` : hostContact.phoneDisplay,
-    ...(publicEnv.email ? { email: publicEnv.email } : {}),
+    email: publicEnv.email || hostContact.email,
   };
 
   return (

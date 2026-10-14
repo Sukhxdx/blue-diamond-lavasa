@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/page-intro";
 import { brand } from "@/lib/brand";
+import { enterprise } from "@/lib/enterprise";
 import { hostContact } from "@/lib/host-contact";
 
 export const metadata: Metadata = {
@@ -53,8 +54,15 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-serif text-3xl text-ink">Your requests</h2>
           <p className="mt-3">
-            To ask for a copy of your booking details, or to correct them, call or WhatsApp the
-            host on{" "}
+            To ask for a copy of your booking details, or to correct them, email{" "}
+            <a href={`mailto:${enterprise.email}`} className="text-ink underline">
+              {enterprise.email}
+            </a>{" "}
+            or{" "}
+            <a href={`mailto:${hostContact.email}`} className="text-ink underline">
+              {hostContact.email}
+            </a>
+            , or call the host on{" "}
             <a href={hostContact.telHref} className="text-ink underline">
               {hostContact.phoneDisplay}
             </a>

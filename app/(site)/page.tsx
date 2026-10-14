@@ -2,26 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { brand } from "@/lib/brand";
+import { enterprise } from "@/lib/enterprise";
+import { formatInr } from "@/lib/money";
 import { photos } from "@/lib/photos";
-
-const stays = [
-  {
-    href: "/stay",
-    kicker: "Villa",
-    title: brand.villaName,
-    text: "Booked as one whole home. The villa carries the On Air name.",
-    src: "/photos/villa/house-front.jpg",
-    alt: "Front of the On Air villa",
-  },
-  {
-    href: "/stay",
-    kicker: "Hotel",
-    title: brand.hotelName,
-    text: "Three double rooms and two deluxe rooms for four. Rooms are booked individually.",
-    src: "/photos/hotel/building.jpg",
-    alt: "Blue Diamond Hotel building in Lavasa",
-  },
-];
+import { stayListings } from "@/lib/rooms";
 
 export default function HomePage() {
   return (
@@ -57,27 +41,42 @@ export default function HomePage() {
           <h2 id="stay-heading" className="font-serif text-4xl text-ink sm:text-5xl">
           Villas and hotels in Lavasa
         </h2>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {stays.map((stay) => (
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {stayListings.map((stay) => (
             <Link
-              key={stay.title}
-              href={stay.href}
+              key={stay.slug}
+              href="/stay"
               className="overflow-hidden rounded-3xl border border-sand bg-paper transition hover:-translate-y-0.5 hover:border-brass"
             >
               <Image
-                src={stay.src}
+                src={stay.cover}
                 alt={stay.alt}
                 width={1800}
                 height={1200}
-                sizes="(min-width: 768px) 50vw, 100vw"
+                sizes="(min-width: 768px) 33vw, 100vw"
                 className="aspect-[16/10] w-full object-cover"
               />
               <div className="p-6">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-brass">
-                {stay.kicker}
+                {stay.kind === "villa" ? "Villa" : "Hotel room"}
               </p>
-              <h3 className="mt-3 font-serif text-4xl text-ink">{stay.title}</h3>
-              <p className="mt-3 max-w-sm leading-7 text-muted">{stay.text}</p>
+              <h3 className="mt-3 font-serif text-4xl text-ink">{stay.name}</h3>
+              <p className="mt-3 leading-7 text-muted">{stay.summary}</p>
+              <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <dt className="text-muted">Weekday</dt>
+                  <dd className="font-medium text-ink">{formatInr(stay.rates.weekdayPaise)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Weekend</dt>
+                  <dd className="font-medium text-ink">{formatInr(stay.rates.weekendPaise)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted">Holiday</dt>
+                  <dd className="font-medium text-ink">{formatInr(stay.rates.holidayPaise)}</dd>
+                </div>
+              </dl>
+              <p className="mt-3 text-xs text-muted">Per night, GST included.</p>
               </div>
             </Link>
           ))}
@@ -133,8 +132,7 @@ export default function HomePage() {
             The restaurant
           </h2>
           <p className="mt-4 max-w-md leading-7 text-cream/85">
-            Dinner at {brand.hotelName}. The menu, opening hours, and table reservations
-            are managed from the restaurant page.
+            A {brand.cuisine} restaurant at {brand.hotelName}, for guests staying at the villa or the hotel.
           </p>
           <Link
             href="/restaurant"
@@ -147,8 +145,8 @@ export default function HomePage() {
         <div className="flex flex-col justify-end">
           <h2 className="font-serif text-4xl text-ink">Location</h2>
           <p className="mt-4 leading-7 text-muted">
-            {brand.hotelName} and the {brand.villaName} villa are in {brand.location},{" "}
-            {brand.country}.
+            {enterprise.name}, {enterprise.addressLines[0]}, {enterprise.addressLines[1]},{" "}
+            {enterprise.addressLines[2]}.
           </p>
           <Link href="/contact" className="mt-6 inline-flex text-sm font-medium text-lake underline">
             Contact

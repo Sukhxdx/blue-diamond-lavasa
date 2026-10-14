@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { brand } from "@/lib/brand";
+import { enterprise } from "@/lib/enterprise";
 import { hostContact } from "@/lib/host-contact";
 import { mailHref, telHref, whatsappHref } from "@/lib/links";
 import { publicEnv } from "@/lib/public-env";
@@ -22,7 +23,8 @@ const policies = [
 
 export function SiteFooter() {
   const phone = telHref(publicEnv.phoneE164);
-  const email = mailHref(publicEnv.email);
+  const emailAddress = publicEnv.email || hostContact.email;
+  const email = mailHref(emailAddress);
   const whatsapp = whatsappHref(
     publicEnv.whatsappE164 || hostContact.whatsappDigits,
     `Hello, I would like to ask about ${brand.villaName} / ${brand.hotelName}.`,
@@ -37,8 +39,8 @@ export function SiteFooter() {
             {brand.hotelName}
           </p>
           <p className="mt-4 max-w-xs text-sm leading-6 text-cream/80">
-            {brand.villaName} is the villa. {brand.hotelName} is the registered hotel name.
-            Both are in {brand.location}.
+            {enterprise.name} operates {brand.hotelName} and the {brand.villaName} villa in{" "}
+            {brand.location}.
           </p>
         </div>
 
@@ -71,7 +73,31 @@ export function SiteFooter() {
         <div>
           <h2 className="text-xs uppercase tracking-[0.18em] text-brass-bright">Contact</h2>
           <address className="mt-4 space-y-2 text-sm not-italic leading-6 text-cream/90">
-            <p>{brand.location}, {brand.country}</p>
+            <p className="font-medium text-cream">{enterprise.name}</p>
+            <p>Udyam {enterprise.udyam}</p>
+            {enterprise.addressLines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+            <p>
+              <a href={enterprise.telHref} className="hover:text-brass-bright">
+                {enterprise.phoneDisplay}
+              </a>
+            </p>
+            <p>
+              <a href={`mailto:${enterprise.email}`} className="hover:text-brass-bright">
+                {enterprise.email}
+              </a>
+            </p>
+            <p>
+              <a href={hostContact.paymentUrl} className="hover:text-brass-bright" target="_blank" rel="noopener noreferrer">
+                Pay the advance
+              </a>
+            </p>
+            <p>
+              <a href={hostContact.mapsUrl} className="hover:text-brass-bright" target="_blank" rel="noopener noreferrer">
+                Google Maps
+              </a>
+            </p>
             <p>
               <a href={hostContact.telHref} className="hover:text-brass-bright">
                 Host {hostContact.phoneDisplay}
@@ -94,7 +120,7 @@ export function SiteFooter() {
             {email ? (
               <p>
                 <a href={email} className="hover:text-brass-bright">
-                  {publicEnv.email}
+                  {emailAddress}
                 </a>
               </p>
             ) : null}
@@ -103,7 +129,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-cream/70">
-          © {brand.hotelName}. {brand.location}.
+          © {enterprise.name}. {brand.location}.
         </p>
       </div>
     </footer>

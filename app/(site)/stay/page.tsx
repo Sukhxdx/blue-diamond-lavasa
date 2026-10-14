@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { PageIntro } from "@/components/page-intro";
+import { PayAdvanceLink } from "@/components/pay-advance-link";
 import { SearchBar } from "@/components/search-bar";
 import { brand } from "@/lib/brand";
 import { hostContact } from "@/lib/host-contact";
@@ -73,7 +74,14 @@ export default function StayPage({
             </article>
           ))}
         </div>
-        <p className="mt-8 text-sm leading-6 text-muted">
+        <div className="mt-8 flex flex-col items-start gap-3">
+          <PayAdvanceLink />
+          <p className="max-w-xl text-sm leading-6 text-muted">
+            Pay 30% of the stay on Razorpay. In the note, write your name, phone, the stay, and
+            the dates. The balance is paid at check-in.
+          </p>
+        </div>
+        <p className="mt-6 text-sm leading-6 text-muted">
           After payment, the receipt and booking details go to you and to the host. Call the
           host on{" "}
           <a href={hostContact.telHref} className="font-medium text-ink underline">

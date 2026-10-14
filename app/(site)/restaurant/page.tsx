@@ -9,18 +9,8 @@ import { publicEnv } from "@/lib/public-env";
 
 export const metadata: Metadata = {
   title: "Restaurant",
-  description: `${brand.cuisine} cuisine at ${brand.hotelName} in Lavasa.`,
+  description: `${brand.cuisine} restaurant at ${brand.hotelName} in Lavasa, beside the On Air villa.`,
 };
-
-const categories = [
-  "Starters",
-  "Tandoor",
-  "Curries",
-  "Breads",
-  "Rice",
-  "Desserts",
-  "Beverages",
-];
 
 export default function RestaurantPage() {
   const phone = telHref(publicEnv.phoneE164);
@@ -32,8 +22,9 @@ export default function RestaurantPage() {
   return (
     <>
       <PageIntro eyebrow={brand.cuisine} title="Restaurant">
-        {brand.cuisine} cuisine at {brand.hotelName} in {brand.location}. Scan the QR card on
-        your table to open the live menu.
+        {brand.hotelName} has a {brand.cuisine} restaurant on the property, next to the{" "}
+        {brand.villaName} villa. Breakfast, lunch, and dinner are served for staying guests.
+        To book a room or the villa, use the stay page.
       </PageIntro>
       <div className="mx-auto max-w-6xl px-4 py-10">
         <Image
@@ -46,13 +37,16 @@ export default function RestaurantPage() {
           className="mb-8 aspect-[16/9] w-full rounded-3xl object-cover"
         />
         <div className="flex flex-col gap-3 sm:flex-row">
+          <Link href="/stay" className="inline-flex justify-center rounded-full bg-pine px-5 py-3 text-sm text-cream">
+            Book a stay
+          </Link>
           {phone ? (
-            <a href={phone} className="inline-flex justify-center rounded-full bg-pine px-5 py-3 text-sm text-cream">
-              Call to reserve
+            <a href={phone} className="inline-flex justify-center rounded-full border border-sand bg-paper px-5 py-3 text-sm">
+              Call to reserve a table
             </a>
           ) : (
-            <Link href="/contact" className="inline-flex justify-center rounded-full bg-pine px-5 py-3 text-sm text-cream">
-              Contact to reserve
+            <Link href="/contact" className="inline-flex justify-center rounded-full border border-sand bg-paper px-5 py-3 text-sm">
+              Contact to reserve a table
             </Link>
           )}
           {whatsapp ? (
@@ -66,15 +60,13 @@ export default function RestaurantPage() {
             </a>
           ) : null}
         </div>
-
-        <ul className="mt-10 divide-y divide-sand rounded-3xl border border-sand bg-paper">
-          {categories.map((category) => (
-            <li key={category} className="px-5 py-5">
-              <h2 className="font-serif text-2xl">{category}</h2>
-              <p className="mt-1 text-sm text-muted">No dishes published in this category yet.</p>
-            </li>
-          ))}
-        </ul>
+        <p className="mt-8 max-w-2xl leading-7 text-muted">
+          Nightly prices for the villa and the hotel rooms are on the{" "}
+          <Link href="/pricing" className="font-medium text-ink underline">
+            pricing page
+          </Link>
+          .
+        </p>
       </div>
     </>
   );

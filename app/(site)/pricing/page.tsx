@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageIntro } from "@/components/page-intro";
+import { PayAdvanceLink } from "@/components/pay-advance-link";
 import { brand } from "@/lib/brand";
 import { formatInr } from "@/lib/money";
 import { stayListings } from "@/lib/rooms";
@@ -40,6 +41,13 @@ export default function PricingPage() {
               </dl>
             </article>
           ))}
+        </div>
+        <div className="mt-8">
+          <PayAdvanceLink />
+          <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
+            Pay 30% on Razorpay. Write your name, phone, the stay, and the dates in the note.
+            The balance is paid at check-in.
+          </p>
         </div>
         <p className="mt-6 text-sm leading-6 text-muted">
           See the{" "}
